@@ -2,3 +2,4 @@ poetry.lock
 .env
 .envrc
 __pycache__/
+database.db
