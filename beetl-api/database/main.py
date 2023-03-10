@@ -4,6 +4,8 @@ from sqlmodel import SQLModel, create_engine, Field, Session
 
 from datetime import datetime
 
+from .models import *
+
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 connect_args = {"check_same_thread": False}
@@ -26,20 +28,12 @@ class Beetl(SQLModel, table=True):
     updated: datetime = Field(default_factory=datetime.utcnow)
 
 
-class BeetlCreate(SQLModel):
-    obfuscation: str
-    slug: str
-    name: Optional[str]
-    description: Optional[str]
-    target: Optional[int]
-
-
-class BeetlRead(SQLModel):
-    id: int
-    obfuscation: str
-    slug: str
-    name: Optional[str]
-    description: Optional[str]
-    target: Optional[int]
-    created: datetime
-    updated: datetime
+class Bid(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    min: int
+    mid: Optional[int]
+    max: int
+    beetl_id: int
+    created: datetime = Field(default_factory=datetime.utcnow)
+    updated: datetime = Field(default_factory=datetime.utcnow)

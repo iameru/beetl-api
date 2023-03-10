@@ -1,6 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
-from .database.main import Beetl, BeetlRead, BeetlCreate
+from .database.main import (
+    Beetl,
+    BeetlRead,
+    BeetlCreate,
+    BidCreate,
+    BidRead,
+    Bid,
+    BidPatch,
+)
 from .database.main import create_db_and_tables, engine
 from sqlmodel import Session, select
 
@@ -43,7 +51,7 @@ async def post_beetl(beetl: BeetlCreate):
     return beetl
 
 
-@app.patch("/beetl")
+@app.patch("/beetl", response_model=BeetlRead)
 async def put_beetl(data: BeetlCreate):
     with Session(engine) as session:
         beetl = session.exec(
@@ -69,3 +77,46 @@ async def put_beetl(data: BeetlCreate):
         session.refresh(beetl)
 
     return beetl
+
+
+@app.post("/bid", response_model=BidRead)
+async def post_bid(data: BidCreate):
+    with Session(engine) as session:
+        bid = Bid.from_orm(data)
+        session.add(bid)
+        session.commit()
+        session.refresh(bid)
+
+    return bid
+
+
+@app.get("/bid", response_model=BidRead)
+async def get_bid(id: int):
+    with Session(engine) as session:
+        bid = session.exec(select(Bid).where(Bid.id == id)).first()
+
+    return bid
+
+
+@app.patch("/bid", response_model=BidRead)
+async def put_bid(data: BidPatch):
+    with Session(engine) as session:
+        bid = session.exec(select(Bid).where(Bid.id == data.id)).first()
+
+        if not bid:
+            raise HTTPException(status_code=404, detail="bid not found")
+
+        data = data.dict(exclude_unset=True)
+
+        for key, value in data.items():
+            if key in ["id", "created", "updated"]:
+                continue
+
+            setattr(bid, key, value)
+
+        setattr(bid, "updated", datetime.utcnow())
+        session.add(bid)
+        session.commit()
+        session.refresh(bid)
+
+    return bid
