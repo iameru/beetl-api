@@ -5,6 +5,7 @@ from beetlapi.database.models import *
 import uuid as uuid_pkg
 import os
 sqlite_file_name = "database.db"
+
 if os.environ.get('DEVDEVDEV'):
     sqlite_file_name = "/dev/shm/beetldatabase.sqlite"
 
@@ -13,7 +14,7 @@ sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}
 
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+engine = create_engine(sqlite_url, echo=False, connect_args=connect_args)
 
 
 def create_db_and_tables():
