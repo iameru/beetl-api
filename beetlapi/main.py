@@ -4,6 +4,7 @@ from .database.main import (
     Beetl,
     BeetlRead,
     BeetlCreate,
+    BeetlPatch,
     BeetlCreateRead,
     BidCreate,
     BidRead,
@@ -54,12 +55,13 @@ async def get_beetl(obfuscation: str, slug: str):
 
 
 @app.patch("/beetl", response_model=BeetlRead)
-async def put_beetl(data: BeetlCreate):
+async def put_beetl(data: BeetlPatch):
     with Session(engine) as session:
         beetl = session.exec(
             select(Beetl)
             .where(Beetl.obfuscation == data.obfuscation)
             .where(Beetl.slug == data.slug)
+            .where(Beetl.secretkey == data.secretkey)
         ).first()
 
         if not beetl:
@@ -68,7 +70,7 @@ async def put_beetl(data: BeetlCreate):
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["obfuscation", "slug", "id", "key", "created", "updated"]:
+            if key in ["obfuscation", "slug", "id", "secretkey", "created", "updated"]:
                 continue
 
             setattr(beetl, key, value)

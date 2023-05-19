@@ -18,6 +18,11 @@ class BeetlCreateRead(BeetlCreate):
 
     secretkey: uuid.UUID
 
+class BeetlPatch(BeetlCreate):
+
+    secretkey: uuid.UUID
+
+
 class BeetlRead(BeetlCreate):
 
     created: datetime
