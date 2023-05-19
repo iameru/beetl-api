@@ -103,8 +103,8 @@ def bid(
         'min': _min(),
         'mid': _mid(),
         'max': _max(),
-        'beetl_obfuscation': str,
-        'beetl_slug': str,
+        'beetl_obfuscation': beetl_obfuscation,
+        'beetl_slug': beetl_slug,
     }
 
 def create_bids(

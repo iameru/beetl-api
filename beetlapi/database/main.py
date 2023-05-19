@@ -66,7 +66,10 @@ class Bid(SQLModel, table=True):
         index=True,
         nullable=False,
     )
-    bidkey: str
+    secretkey: uuid_pkg.UUID = Field(
+        default_factory=uuid_pkg.uuid4,
+        nullable=False,
+    )
     name: str
     min: int
     mid: Optional[int]

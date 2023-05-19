@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from beetlapi import app
 from test import factory
+import unittest
 
 testclient = TestClient(app)
 
@@ -141,15 +142,70 @@ def test_get_bids_does_return_empty_list_of_bids_and_total_when_empty():
     assert r.get('bids') == []
     assert r.get('bids_total') == 0
 
-
 def test_get_bids_empty_for_secret_beetl():
-    # implement optional key
-    pass
 
-# def test_create_a_bid_for_open_beetl():
+    beetl = factory.beetl(beetlmode='closed')
+    testclient.post(url='/beetl', json=beetl)
+    
+    data = {'slug': beetl.get('slug'), 'obfuscation': beetl.get('obfuscation')}
+    response = testclient.get('/bids',params=data)
 
-#     b = testdata['open']
-#     bids = factory.create_bids( b.get('beetl_obfuscation'), b.get('beetl_slug') )
+    r = response.json()
+    assert r.get('bids') == []
+    assert r.get('bids_total') == 0
 
+def test_create_bids_for_open_beetl():
 
-#     assert False
+    beetl = testdata['open']
+    bids = factory.create_bids(
+        beetl_obfuscation= beetl.get('obfuscation'),
+        beetl_slug= beetl.get('slug'), 
+        amount=1
+    )
+    bid = bids[0]
+
+    response = testclient.post('/bid', json=bid)
+    assert response.status_code == 200
+    b = response.json()
+    assert b.get('secretkey')
+    assert b.get('updated')
+
+    testdata['open_bids'] = [b]
+
+    bids = factory.create_bids(
+        beetl_obfuscation= beetl.get('obfuscation'),
+        beetl_slug= beetl.get('slug'), 
+        amount=4
+    )
+    for bid in bids:
+        response = testclient.post('/bid', json=bid)
+        testdata['open_bids'].append(response.json())
+
+    assert len(testdata['open_bids']) == 5
+
+def test_get_bids_for_open_beetl():
+
+    beetl = testdata['open']
+
+    data = {
+        'slug': beetl.get('slug'), 
+        'obfuscation': beetl.get('obfuscation')
+    }
+    response = testclient.get('/bids',params=data)
+    r_bids = response.json()
+
+    assert r_bids.get('bids_total') == 5
+    assert len(r_bids.get('bids')) == 5
+
+    bids = testdata.copy().get('open_bids')
+
+    # gotta remove keys as they shall not be in the open poll
+    for bid in bids: 
+        del bid['secretkey']
+
+    _bids = r_bids.get('bids')
+
+    # hackaround because I can compare lists of dicts easily with unittest
+    case = unittest.TestCase()
+    case.assertCountEqual(bids, _bids)
+

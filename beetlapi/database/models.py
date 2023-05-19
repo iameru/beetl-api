@@ -38,21 +38,24 @@ class BidCreate(SQLModel):
     beetl_slug: str
 
 
+class BidCreateRead(BidCreate):
+    secretkey: uuid.UUID
+    created: datetime
+    updated: datetime
+
+
+class BidRead(BidCreate):
+
+    created: datetime
+    updated: datetime
+
 class BidsRead(SQLModel):
 
     bids_total: int
-    bids: list[BidCreate]
-
-
+    bids: list[BidRead]
 
 class BidPatch(BidCreate):
 
     id: str
     bidkey: str
 
-
-class BidRead(BidCreate):
-
-    id: str
-    created: datetime
-    updated: datetime

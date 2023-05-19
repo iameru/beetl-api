@@ -8,6 +8,7 @@ from .database.main import (
     BeetlCreateRead,
     BidsRead,
     BidCreate,
+    BidCreateRead,
     BidRead,
     Bid,
     BidPatch,
@@ -97,15 +98,7 @@ async def get_bids(obfuscation: str, slug: str):
 
 
 
-
-
-
-
-
-
-
-
-@app.post("/bid", response_model=BidRead)
+@app.post("/bid", response_model=BidCreateRead)
 async def post_bid(data: BidCreate):
     with Session(engine) as session:
         bid = Bid.from_orm(data)
