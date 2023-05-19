@@ -6,6 +6,7 @@ from .database.main import (
     BeetlCreate,
     BeetlPatch,
     BeetlCreateRead,
+    BidsRead,
     BidCreate,
     BidRead,
     Bid,
@@ -81,6 +82,27 @@ async def put_beetl(data: BeetlPatch):
         session.refresh(beetl)
 
     return beetl
+
+
+@app.get("/bids", response_model=BidsRead)
+async def get_bids(obfuscation: str, slug: str):
+    with Session(engine) as session:
+        bids = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == obfuscation)
+            .where(Bid.beetl_slug == slug)
+        ).all()
+
+    return {'bids': bids, 'bids_total': len(bids)}
+
+
+
+
+
+
+
+
+
 
 
 @app.post("/bid", response_model=BidRead)

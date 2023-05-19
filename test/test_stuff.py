@@ -4,6 +4,8 @@ from test import factory
 
 testclient = TestClient(app)
 
+testdata = {}
+
 def test_testclient_present():
     assert testclient
 
@@ -26,13 +28,18 @@ def test_post_valid_open_beetl():
     assert beetl.get('beetlmode') == 'open'
     assert beetl.get('target') != 0
 
+    testdata['open'] = beetl
+
 def test_post_valid_closed_beetl():
 
     closed_beetl  = factory.beetl(beetlmode='closed')
 
     response = testclient.post(url='/beetl', json=closed_beetl)
     assert response.status_code == 200
-    assert response.json().get('beetlmode') == 'closed'
+    beetl = response.json()
+    assert beetl.get('beetlmode') == 'closed'
+
+    testdata['closed'] = beetl
 
 def test_post_throws_back_secret_key_to_edit_beetl():
 
@@ -121,3 +128,28 @@ def test_get_beetl_doesnt_return_secrets():
     r = response.json()
     assert r.get('amount') == beetl.get('amount')
     assert not r.get('secretkey')
+
+def test_get_bids_does_return_empty_list_of_bids_and_total_when_empty():
+
+    beetl = factory.beetl()
+    testclient.post(url='/beetl', json=beetl)
+    
+    data = {'slug': beetl.get('slug'), 'obfuscation': beetl.get('obfuscation')}
+    response = testclient.get('/bids',params=data)
+
+    r = response.json()
+    assert r.get('bids') == []
+    assert r.get('bids_total') == 0
+
+
+def test_get_bids_empty_for_secret_beetl():
+    # implement optional key
+    pass
+
+# def test_create_a_bid_for_open_beetl():
+
+#     b = testdata['open']
+#     bids = factory.create_bids( b.get('beetl_obfuscation'), b.get('beetl_slug') )
+
+
+#     assert False

@@ -1,6 +1,22 @@
 import uuid
 import random
 
+names=[
+    'joe',
+    'gabi',
+    'futye',
+    'sandra',
+    'gaborel',
+    'salamanda',
+    'simsalaboom',
+    'harri joefury',
+    'gay spacecommunism',
+    'escalating espionage',
+    'erna und harri rollmeyer',
+    'die kurve wird immer größer',
+    'aber jetzt reichts auch wirklich'
+]
+
 def beetl(
         slug:str='',
         method='',
@@ -44,3 +60,61 @@ def beetl(
         'description': _description(),
         'target': _target(),
     }
+
+
+def bid(
+        beetl_obfuscation: str,
+        beetl_slug: str,
+        name: str = '',
+        min: int = 0,
+        mid: int = 0,
+        max: int = 0,
+    ):
+
+    def _name():
+        if name: return name
+        return random.choice([
+            'joe',
+            'gabi',
+            'futye',
+            'sandra',
+            'gaborel',
+            'salamanda',
+            'simsalaboom',
+            'harri joefury',
+            'gay spacecommunism',
+            'escalating espionage',
+            'erna und harri rollmeyer',
+            'die kurve wird immer größer',
+            'aber jetzt reichts auch wirklich'
+        ])
+    def _min():
+        if min: return min
+        return random.randint(1,200)
+    def _mid():
+        if mid: return mid
+        return random.randint(200,250)
+    def _max():
+        if max: return max
+        return random.randint(250,333)
+
+    return {
+        'name': _name(),
+        'min': _min(),
+        'mid': _mid(),
+        'max': _max(),
+        'beetl_obfuscation': str,
+        'beetl_slug': str,
+    }
+
+def create_bids(
+    beetl_obfuscation: str,
+    beetl_slug: str,
+    amount: int=5 
+    ):
+
+    return [ bid(
+        beetl_obfuscation=beetl_obfuscation, 
+        beetl_slug=beetl_slug,
+        name=names[i]
+    ) for i in range(amount) ]

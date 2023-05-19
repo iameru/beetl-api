@@ -30,13 +30,20 @@ class BeetlRead(BeetlCreate):
 
 
 class BidCreate(SQLModel):
-
     name: str
     min: int
     mid: Optional[int]
     max: int
     beetl_obfuscation: str
     beetl_slug: str
+
+
+class BidsRead(SQLModel):
+
+    bids_total: int
+    bids: list[BidCreate]
+
+
 
 class BidPatch(BidCreate):
 
