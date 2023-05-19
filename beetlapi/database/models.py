@@ -9,10 +9,13 @@ class BeetlCreate(SQLModel):
     slug: str
     method: str
     beetlmode: str
-    name: Optional[str]
+    title: Optional[str]
     description: Optional[str]
     target: Optional[int]
 
+class BeetlCreateRead(BeetlCreate):
+
+    key: str
 
 class BeetlRead(BeetlCreate):
 

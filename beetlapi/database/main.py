@@ -44,14 +44,17 @@ class Beetl(SQLModel, table=True):
 
     obfuscation: str
     slug: str
-    name: Optional[str]
+    title: Optional[str]
     description: Optional[str]
     target: Optional[int]
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default_factory=datetime.utcnow)
     method: str
     beetlmode: str
-    beetlkey: str
+    beetlkey: uuid_pkg.UUID = Field(
+        default_factory=uuid_pkg.uuid4,
+        nullable=False,
+    )
 
 
 class Bid(SQLModel, table=True):
