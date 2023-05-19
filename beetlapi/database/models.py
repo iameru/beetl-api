@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel
 from typing import Optional
 from datetime import datetime
+import uuid
 
 
 class BeetlCreate(SQLModel):
@@ -15,7 +16,7 @@ class BeetlCreate(SQLModel):
 
 class BeetlCreateRead(BeetlCreate):
 
-    key: str
+    secretkey: uuid.UUID
 
 class BeetlRead(BeetlCreate):
 

@@ -4,6 +4,7 @@ from .database.main import (
     Beetl,
     BeetlRead,
     BeetlCreate,
+    BeetlCreateRead,
     BidCreate,
     BidRead,
     Bid,
@@ -28,8 +29,9 @@ def on_startup():
     create_db_and_tables()
 
 
-@app.post("/beetl", response_model=BeetlRead)
+@app.post("/beetl", response_model=BeetlCreateRead)
 async def post_beetl(beetl: BeetlCreate):
+
     with Session(engine) as session:
         beetl = Beetl.from_orm(beetl)
         session.add(beetl)

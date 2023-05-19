@@ -34,7 +34,6 @@ def delete_entries(table: SQLModel, time_ago: timedelta):
 
 class Beetl(SQLModel, table=True):
 
-    # id: Optional[int] = Field(default=None, primary_key=True)
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4,
         primary_key=True,
@@ -51,7 +50,7 @@ class Beetl(SQLModel, table=True):
     updated: datetime = Field(default_factory=datetime.utcnow)
     method: str
     beetlmode: str
-    beetlkey: uuid_pkg.UUID = Field(
+    secretkey: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4,
         nullable=False,
     )
