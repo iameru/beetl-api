@@ -28,6 +28,17 @@ def on_startup():
     create_db_and_tables()
 
 
+@app.post("/beetl", response_model=BeetlRead)
+async def post_beetl(beetl: BeetlCreate):
+    with Session(engine) as session:
+        beetl = Beetl.from_orm(beetl)
+        session.add(beetl)
+        session.commit()
+        session.refresh(beetl)
+
+    return beetl
+
+
 @app.get("/beetl", response_model=BeetlRead)
 async def get_beetl(obfuscation: str, slug: str):
     with Session(engine) as session:
@@ -36,17 +47,6 @@ async def get_beetl(obfuscation: str, slug: str):
             .where(Beetl.obfuscation == obfuscation)
             .where(Beetl.slug == slug)
         ).first()
-
-    return beetl
-
-
-@app.post("/beetl", response_model=BeetlRead)
-async def post_beetl(beetl: BeetlCreate):
-    with Session(engine) as session:
-        beetl = Beetl.from_orm(beetl)
-        session.add(beetl)
-        session.commit()
-        session.refresh(beetl)
 
     return beetl
 
@@ -66,7 +66,7 @@ async def put_beetl(data: BeetlCreate):
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["obfuscation", "slug", "id", "created", "updated"]:
+            if key in ["obfuscation", "slug", "id", "key", "created", "updated"]:
                 continue
 
             setattr(beetl, key, value)
@@ -90,13 +90,18 @@ async def post_bid(data: BidCreate):
     return bid
 
 
+# Actually will ich ne liste von bids anfragen für nen obf-slug beetl. 
+# und pruefen und bearbeiten was der user sieht, je nachdem.
+
 @app.get("/bid", response_model=BidRead)
-async def get_bid(id: int):
+async def get_bid(id: str):
     with Session(engine) as session:
         bid = session.exec(select(Bid).where(Bid.id == id)).first()
 
     return bid
 
+
+# actually anders jetzt, mit key
 
 @app.patch("/bid", response_model=BidRead)
 async def put_bid(data: BidPatch):

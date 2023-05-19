@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 
 from .models import *
 
+import uuid as uuid_pkg
+
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 connect_args = {"check_same_thread": False}
@@ -29,8 +31,17 @@ def delete_entries(table: SQLModel, time_ago: timedelta):
             session.delete(entry)
 
 
+
 class Beetl(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+
+    # id: Optional[int] = Field(default=None, primary_key=True)
+    id: uuid_pkg.UUID = Field(
+        default_factory=uuid_pkg.uuid4,
+        primary_key=True,
+        index=True,
+        nullable=False,
+    )
+
     obfuscation: str
     slug: str
     name: Optional[str]
@@ -38,15 +49,25 @@ class Beetl(SQLModel, table=True):
     target: Optional[int]
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default_factory=datetime.utcnow)
+    method: str
+    beetlmode: str
+    beetlkey: str
 
 
 class Bid(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    # id: Optional[int] = Field(default=None, primary_key=True)
+    id: uuid_pkg.UUID = Field(
+        default_factory=uuid_pkg.uuid4,
+        primary_key=True,
+        index=True,
+        nullable=False,
+    )
+    bidkey: str
     name: str
     min: int
     mid: Optional[int]
     max: int
-    beetl_id: int
+    beetl_obfuscation: str
+    beetl_slug: str
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default_factory=datetime.utcnow)
-

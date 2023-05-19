@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "beetl-api"
+name = "beetlapi"
 version = "0.1.0"
 description = ""
 authors = ["iameru <post@i3o.eu>"]
 readme = "README.md"
-packages = [{include = "beetl_api"}]
+packages = [{include = "beetlapi"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -15,7 +15,13 @@ sqlmodel = "^0.0.8"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
+pytest-watch = "^4.2.0"
+httpx = "^0.24.1"
+pytest = "^7.3.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = [ "--import-mode=importlib", ]
