@@ -2,14 +2,14 @@ from sqlmodel import SQLModel
 from typing import Optional
 from datetime import datetime
 import uuid
-
+from typing import Literal
 
 class BeetlCreate(SQLModel):
 
     obfuscation: str
     slug: str
     method: str
-    beetlmode: str
+    beetlmode: Literal['public','private']
     title: Optional[str]
     description: Optional[str]
     target: Optional[int]

@@ -22,24 +22,24 @@ def test_post_invalid_open_beetl():
 
 def test_post_valid_open_beetl():
 
-    open_beetl = factory.beetl(beetlmode='open')
+    open_beetl = factory.beetl(beetlmode='public')
 
     response = testclient.post(url='/beetl', json=open_beetl)
     assert response.status_code == 200
     beetl = response.json()
-    assert beetl.get('beetlmode') == 'open'
+    assert beetl.get('beetlmode') == 'public'
     assert beetl.get('target') != 0
 
     testdata['open'] = beetl
 
 def test_post_valid_closed_beetl():
 
-    closed_beetl  = factory.beetl(beetlmode='closed')
+    closed_beetl  = factory.beetl(beetlmode='private')
 
     response = testclient.post(url='/beetl', json=closed_beetl)
     assert response.status_code == 200
     beetl = response.json()
-    assert beetl.get('beetlmode') == 'closed'
+    assert beetl.get('beetlmode') == 'private'
 
     testdata['closed'] = beetl
 
@@ -145,7 +145,7 @@ def test_get_bids_does_return_empty_list_of_bids_and_total_when_empty():
 
 def test_get_bids_empty_for_secret_beetl():
 
-    beetl = factory.beetl(beetlmode='closed')
+    beetl = factory.beetl(beetlmode='private')
     testclient.post(url='/beetl', json=beetl)
     
     data = {'slug': beetl.get('slug'), 'obfuscation': beetl.get('obfuscation')}
@@ -272,4 +272,42 @@ def test_edit_existing_bid_with_correct_key():
     assert r_bid.get('created') == created
     assert r_bid.get('updated') != updated
 
+def test_create_bids_for_closed_beetl():
 
+    beetl = testdata['closed']
+    bids = factory.create_bids(
+        beetl_obfuscation= beetl.get('obfuscation'),
+        beetl_slug= beetl.get('slug'), 
+        amount=1
+    )
+    bid = bids[0]
+
+    response = testclient.post('/bid', json=bid)
+    b = response.json()
+
+    testdata['closed_bids'] = [b]
+
+    bids = factory.create_bids(
+        beetl_obfuscation= beetl.get('obfuscation'),
+        beetl_slug= beetl.get('slug'), 
+        amount=4
+    )
+    for bid in bids:
+        response = testclient.post('/bid', json=bid)
+        testdata['closed_bids'].append(response.json())
+
+    assert len(testdata['closed_bids']) == 5
+
+def test_get_bids_for_closed_beetl():
+
+    beetl = testdata['closed']
+
+    data = {
+        'slug': beetl.get('slug'), 
+        'obfuscation': beetl.get('obfuscation')
+    }
+    response = testclient.get('/bids',params=data)
+    r_bids = response.json()
+
+    assert r_bids.get('bids_total') == 5
+    assert len(r_bids.get('bids')) == 0

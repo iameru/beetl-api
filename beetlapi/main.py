@@ -44,8 +44,7 @@ async def post_beetl(beetl: BeetlCreate):
     return beetl
 
 
-@app.get("/beetl", response_model=BeetlRead)
-async def get_beetl(obfuscation: str, slug: str):
+def _get_beetl(obfuscation:str, slug:str):
     with Session(engine) as session:
         beetl = session.exec(
             select(Beetl)
@@ -53,6 +52,12 @@ async def get_beetl(obfuscation: str, slug: str):
             .where(Beetl.slug == slug)
         ).first()
 
+    return beetl
+
+@app.get("/beetl", response_model=BeetlRead)
+async def get_beetl(obfuscation: str, slug: str):
+
+    beetl = _get_beetl(obfuscation, slug)
     return beetl
 
 
@@ -72,7 +77,7 @@ async def put_beetl(data: BeetlPatch):
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["obfuscation", "slug", "id", "secretkey", "created", "updated"]:
+            if key in ["obfuscation", "slug", "id", "secretkey", 'beetlmode', "created", "updated"]:
                 continue
 
             setattr(beetl, key, value)
@@ -93,8 +98,16 @@ async def get_bids(obfuscation: str, slug: str):
             .where(Bid.beetl_obfuscation == obfuscation)
             .where(Bid.beetl_slug == slug)
         ).all()
+        bids_total = len(bids)
 
-    return {'bids': bids, 'bids_total': len(bids)}
+        beetl = _get_beetl(obfuscation, slug)
+
+        if beetl.beetlmode == 'public':
+            return {'bids': bids, 'bids_total': bids_total}
+
+        if beetl.beetlmode == 'private':
+            return {'bids': [], 'bids_total': bids_total}
+
 
 
 @app.post("/bid", response_model=BidCreateRead)
