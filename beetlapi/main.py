@@ -73,11 +73,13 @@ async def put_beetl(data: BeetlPatch):
 
         if not beetl:
             raise HTTPException(status_code=404, detail="Beetl not found")
+        if data.secretkey != beetl.secretkey:
+            raise HTTPException(status_code=404, detail="Beetl not found")
 
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["obfuscation", "slug", "id", "secretkey", 'beetlmode', "created", "updated"]:
+            if key in ["obfuscation", "slug", "id", "secretkey", "created", "updated"]:
                 continue
 
             setattr(beetl, key, value)
