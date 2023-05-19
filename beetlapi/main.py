@@ -97,7 +97,6 @@ async def get_bids(obfuscation: str, slug: str):
     return {'bids': bids, 'bids_total': len(bids)}
 
 
-
 @app.post("/bid", response_model=BidCreateRead)
 async def post_bid(data: BidCreate):
     with Session(engine) as session:
@@ -109,23 +108,15 @@ async def post_bid(data: BidCreate):
     return bid
 
 
-# Actually will ich ne liste von bids anfragen für nen obf-slug beetl. 
-# und pruefen und bearbeiten was der user sieht, je nachdem.
-
-@app.get("/bid", response_model=BidRead)
-async def get_bid(id: str):
-    with Session(engine) as session:
-        bid = session.exec(select(Bid).where(Bid.id == id)).first()
-
-    return bid
-
-
-# actually anders jetzt, mit key
-
 @app.patch("/bid", response_model=BidRead)
 async def put_bid(data: BidPatch):
     with Session(engine) as session:
-        bid = session.exec(select(Bid).where(Bid.id == data.id)).first()
+        bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == data.beetl_obfuscation)
+            .where(Bid.beetl_slug == data.beetl_slug)
+            .where(Bid.secretkey == data.secretkey)
+        ).first()
 
         if not bid:
             raise HTTPException(status_code=404, detail="bid not found")
@@ -133,7 +124,7 @@ async def put_bid(data: BidPatch):
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["id", "created", "updated"]:
+            if key in ["secretkey", "beetl_obfuscation", "beetl_slug", "created", "updated"]:
                 continue
 
             setattr(bid, key, value)
@@ -144,3 +135,6 @@ async def put_bid(data: BidPatch):
         session.refresh(bid)
 
     return bid
+
+
+

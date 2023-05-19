@@ -56,6 +56,5 @@ class BidsRead(SQLModel):
 
 class BidPatch(BidCreate):
 
-    id: str
-    bidkey: str
+    secretkey: uuid.UUID
 

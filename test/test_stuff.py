@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from beetlapi import app
 from test import factory
 import unittest
+import random
 
 testclient = TestClient(app)
 
@@ -197,15 +198,78 @@ def test_get_bids_for_open_beetl():
     assert r_bids.get('bids_total') == 5
     assert len(r_bids.get('bids')) == 5
 
-    bids = testdata.copy().get('open_bids')
 
     # gotta remove keys as they shall not be in the open poll
-    for bid in bids: 
+    bids = []
+    for _bid in testdata.get('open_bids'):
+        bid = _bid.copy()
         del bid['secretkey']
+        bids.append(bid)
 
     _bids = r_bids.get('bids')
 
     # hackaround because I can compare lists of dicts easily with unittest
     case = unittest.TestCase()
     case.assertCountEqual(bids, _bids)
+
+def test_edit_existing_bid_with_none_or_wrong_key():
+
+    beetl = testdata.get('open')
+    bid = random.choice(testdata.get('open_bids'))
+    updated = bid.get('updated')
+
+    bid = bid.copy()
+    bid.update({'name' : 'francis mc. edit'})
+
+    del bid['secretkey']
+    response = testclient.patch('/bid', json=bid)
+    assert response.status_code == 422
+
+    bid['secretkey'] = 'l33th4xx'
+    response = testclient.patch('/bid', json=bid)
+    assert response.status_code == 422
+
+    # fetching block repeating myself but i dont care for now
+    data = {
+        'slug': beetl.get('slug'), 
+        'obfuscation': beetl.get('obfuscation')
+    }
+    response = testclient.get('/bids',params=data)
+
+    bids = []
+    for _bid in testdata.get('open_bids'):
+        bid = _bid.copy()
+        del bid['secretkey']
+        bids.append(bid)
+    r_bids = response.json()
+    _bids = r_bids.get('bids')
+
+    # hackaround because I can compare lists of dicts easily with unittest
+    case = unittest.TestCase()
+    case.assertCountEqual(bids, _bids)
+
+def test_edit_existing_bid_with_correct_key():
+
+    beetl = testdata.get('open')
+    bid_selector = 2
+    bid = testdata.get('open_bids')[bid_selector]
+
+    max = bid.get('max')
+    created = bid.get('created')
+    updated = bid.get('updated')
+
+    new_bid = bid.copy()
+    new_bid.update({'name' : 'francis mc. edit', 'max': max+5})
+
+    response = testclient.patch('/bid', json=new_bid)
+    assert response.status_code == 200
+
+    r_bid = response.json()
+    
+    assert r_bid.get('name') == 'francis mc. edit'
+    assert r_bid.get('max') != max
+    assert r_bid.get('max') == max + 5
+    assert r_bid.get('created') == created
+    assert r_bid.get('updated') != updated
+
 
