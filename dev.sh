@@ -1,3 +1,3 @@
 #!/bin/sh
-uvicorn beetl-api:app --reload
+uvicorn beetlapi:app --reload
 

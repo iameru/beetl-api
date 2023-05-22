@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 
-from .database.main import (
+from beetlapi.database.main import (
     Beetl,
     BeetlRead,
     BeetlCreate,
@@ -13,7 +13,7 @@ from .database.main import (
     Bid,
     BidPatch,
 )
-from .database.main import create_db_and_tables, engine
+from beetlapi.database.main import create_db_and_tables, engine
 from sqlmodel import Session, select
 
 from datetime import datetime
@@ -43,7 +43,6 @@ async def post_beetl(beetl: BeetlCreate):
 
     return beetl
 
-
 def _get_beetl(obfuscation:str, slug:str):
     with Session(engine) as session:
         beetl = session.exec(
@@ -60,9 +59,8 @@ async def get_beetl(obfuscation: str, slug: str):
     beetl = _get_beetl(obfuscation, slug)
     return beetl
 
-
 @app.patch("/beetl", response_model=BeetlRead)
-async def put_beetl(data: BeetlPatch):
+async def patch_beetl(data: BeetlPatch):
     with Session(engine) as session:
         beetl = session.exec(
             select(Beetl)
@@ -91,6 +89,15 @@ async def put_beetl(data: BeetlPatch):
 
     return beetl
 
+@app.post("/bid", response_model=BidCreateRead)
+async def post_bid(data: BidCreate):
+    with Session(engine) as session:
+        bid = Bid.from_orm(data)
+        session.add(bid)
+        session.commit()
+        session.refresh(bid)
+
+    return bid
 
 @app.get("/bids", response_model=BidsRead)
 async def get_bids(obfuscation: str, slug: str):
@@ -110,21 +117,8 @@ async def get_bids(obfuscation: str, slug: str):
         if beetl.beetlmode == 'private':
             return {'bids': [], 'bids_total': bids_total}
 
-
-
-@app.post("/bid", response_model=BidCreateRead)
-async def post_bid(data: BidCreate):
-    with Session(engine) as session:
-        bid = Bid.from_orm(data)
-        session.add(bid)
-        session.commit()
-        session.refresh(bid)
-
-    return bid
-
-
 @app.patch("/bid", response_model=BidRead)
-async def put_bid(data: BidPatch):
+async def patch_bid(data: BidPatch):
     with Session(engine) as session:
         bid = session.exec(
             select(Bid)
@@ -150,6 +144,3 @@ async def put_bid(data: BidPatch):
         session.refresh(bid)
 
     return bid
-
-
-
