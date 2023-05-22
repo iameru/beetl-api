@@ -89,7 +89,13 @@ def test_can_not_edit_beetl_with_fake_secretkey():
     updated.update({'secretkey': 'FAKE'})
     response = testclient.patch('/beetl', json=updated)
 
-    assert response.status_code == 422
+    assert response.status_code == 404
+
+    data = {'slug': beetl.get('slug'), 'obfuscation': beetl.get('obfuscation')}
+    response = testclient.get('/beetl',params=data)
+    assert response.json().get('title') != updated.get('title')
+    assert response.json().get('description') == beetl.get('description')
+
 
 def test_can_edit_beetl_with_correct_key():
 
@@ -227,7 +233,7 @@ def test_edit_existing_bid_with_none_or_wrong_key():
 
     bid['secretkey'] = 'l33th4xx'
     response = testclient.patch('/bid', json=bid)
-    assert response.status_code == 422
+    assert response.status_code == 404
 
     # fetching block repeating myself but i dont care for now
     data = {

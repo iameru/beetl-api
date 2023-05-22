@@ -3,6 +3,7 @@ from sqlmodel import SQLModel, create_engine, Field, Session, delete, select
 from datetime import datetime, timedelta
 from beetlapi.database.models import *
 import uuid as uuid_pkg
+import secrets
 import os
 sqlite_file_name = "database.db"
 
@@ -42,7 +43,10 @@ class Beetl(SQLModel, table=True):
         index=True,
         nullable=False,
     )
-
+    secretkey: str = Field(
+        default_factory=secrets.token_urlsafe,
+        nullable=False,
+    )
     obfuscation: str
     slug: str
     title: Optional[str]
@@ -52,22 +56,18 @@ class Beetl(SQLModel, table=True):
     updated: datetime = Field(default_factory=datetime.utcnow)
     method: str
     beetlmode: str
-    secretkey: uuid_pkg.UUID = Field(
-        default_factory=uuid_pkg.uuid4,
-        nullable=False,
-    )
 
 
 class Bid(SQLModel, table=True):
-    # id: Optional[int] = Field(default=None, primary_key=True)
+
     id: uuid_pkg.UUID = Field(
         default_factory=uuid_pkg.uuid4,
         primary_key=True,
         index=True,
         nullable=False,
     )
-    secretkey: uuid_pkg.UUID = Field(
-        default_factory=uuid_pkg.uuid4,
+    secretkey: str = Field(
+        default_factory=secrets.token_urlsafe,
         nullable=False,
     )
     name: str

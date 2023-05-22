@@ -1,7 +1,6 @@
 from sqlmodel import SQLModel
 from typing import Optional
 from datetime import datetime
-import uuid
 from typing import Literal
 
 class BeetlCreate(SQLModel):
@@ -16,12 +15,11 @@ class BeetlCreate(SQLModel):
 
 class BeetlCreateRead(BeetlCreate):
 
-    secretkey: uuid.UUID
+    secretkey: str
 
 class BeetlPatch(BeetlCreate):
 
-    secretkey: uuid.UUID
-
+    secretkey: str
 
 class BeetlRead(BeetlCreate):
 
@@ -39,7 +37,8 @@ class BidCreate(SQLModel):
 
 
 class BidCreateRead(BidCreate):
-    secretkey: uuid.UUID
+
+    secretkey: str
     created: datetime
     updated: datetime
 
@@ -56,5 +55,5 @@ class BidsRead(SQLModel):
 
 class BidPatch(BidCreate):
 
-    secretkey: uuid.UUID
+    secretkey: str
 
