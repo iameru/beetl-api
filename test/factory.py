@@ -73,21 +73,7 @@ def bid(
 
     def _name():
         if name: return name
-        return random.choice([
-            'joe',
-            'gabi',
-            'futye',
-            'sandra',
-            'gaborel',
-            'salamanda',
-            'simsalaboom',
-            'harri joefury',
-            'gay spacecommunism',
-            'escalating espionage',
-            'erna und harri rollmeyer',
-            'die kurve wird immer größer',
-            'aber jetzt reichts auch wirklich'
-        ])
+        return random.choice(names)
     def _min():
         if min: return min
         return random.randint(1,200)
