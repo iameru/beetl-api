@@ -1,4 +1,3 @@
-from fastapi import FastAPI, HTTPException
 from beetlapi.database.main import (
     Beetl,
     BeetlRead,
@@ -15,6 +14,7 @@ from beetlapi.database.main import (
     BidDelete,
     BidDeleteResponse
 )
+from fastapi import FastAPI, HTTPException
 from beetlapi.database.main import create_db_and_tables, engine
 from sqlmodel import Session, select, delete
 from datetime import datetime
@@ -27,6 +27,15 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
+def _get_beetl(obfuscation:str, slug:str):
+    with Session(engine) as session:
+        beetl = session.exec(
+            select(Beetl)
+            .where(Beetl.obfuscation == obfuscation)
+            .where(Beetl.slug == slug)
+        ).first()
+
+    return beetl
 
 @app.on_event("startup")
 def on_startup():
@@ -43,16 +52,6 @@ async def post_beetl(beetl: BeetlCreate):
 
     return beetl
 
-def _get_beetl(obfuscation:str, slug:str):
-    with Session(engine) as session:
-        beetl = session.exec(
-            select(Beetl)
-            .where(Beetl.obfuscation == obfuscation)
-            .where(Beetl.slug == slug)
-        ).first()
-
-    return beetl
-
 @app.get("/beetl", response_model=BeetlRead)
 async def get_beetl(obfuscation: str, slug: str):
 
@@ -61,33 +60,48 @@ async def get_beetl(obfuscation: str, slug: str):
 
 @app.patch("/beetl", response_model=BeetlRead)
 async def patch_beetl(data: BeetlPatch):
-    with Session(engine) as session:
-        beetl = session.exec(
-            select(Beetl)
-            .where(Beetl.obfuscation == data.obfuscation)
-            .where(Beetl.slug == data.slug)
-            .where(Beetl.secretkey == data.secretkey)
-        ).first()
 
-        if not beetl:
-            raise HTTPException(status_code=404, detail="Beetl not found")
-        if data.secretkey != beetl.secretkey:
-            raise HTTPException(status_code=404, detail="Beetl not found")
+    beetl = _get_beetl(data.obfuscation, data.slug)
+    if beetl.secretkey == data.secretkey:
 
-        data = data.dict(exclude_unset=True)
+        with Session(engine) as session:
 
-        for key, value in data.items():
-            if key in ["obfuscation", "slug", "id", "secretkey", "created", "updated"]:
-                continue
+            data = data.dict(exclude_unset=True)
 
-            setattr(beetl, key, value)
+            for key, value in data.items():
+                if key in Beetl._ignore_fields:
+                    continue
 
-        setattr(beetl, "updated", datetime.utcnow())
-        session.add(beetl)
-        session.commit()
-        session.refresh(beetl)
+                setattr(beetl, key, value)
+            setattr(beetl, "updated", datetime.utcnow())
 
-    return beetl
+            session.add(beetl)
+            session.commit()
+            session.refresh(beetl)
+
+            return beetl
+
+    raise HTTPException(status_code=404, detail="Beetl not found")
+
+@app.delete('/beetl', response_model=BeetlDeleteResponse)
+async def delete_bid(obfuscation: str, slug: str, secretkey: str):
+
+    beetl = _get_beetl(obfuscation, slug)
+    if beetl.secretkey == secretkey:
+
+        with Session(engine) as session:
+
+            [session.delete(bid) for bid in session.exec(
+                select(Bid)
+                .where(Bid.beetl_obfuscation == obfuscation)
+                .where(Bid.beetl_slug == slug)
+            ).all()]
+            session.delete(beetl)
+            session.commit()
+
+        return beetl
+
+    raise HTTPException(status_code=404, detail="Beetl not found")
 
 @app.post("/bid", response_model=BidCreateRead)
 async def post_bid(data: BidCreate):
@@ -133,7 +147,7 @@ async def patch_bid(data: BidPatch):
         data = data.dict(exclude_unset=True)
 
         for key, value in data.items():
-            if key in ["secretkey", "beetl_obfuscation", "beetl_slug", "created", "updated"]:
+            if key in Bid._ignore_fields:
                 continue
 
             setattr(bid, key, value)
@@ -161,26 +175,6 @@ async def delete_bid(beetl_obfuscation: str, beetl_slug: str, secretkey: str):
             session.commit()
 
             return bid
-        
 
     raise HTTPException(status_code=404, detail="Bid not found")
 
-@app.delete('/beetl', response_model=BeetlDeleteResponse)
-async def delete_bid(obfuscation: str, slug: str, secretkey: str):
-
-    beetl = _get_beetl(obfuscation, slug)
-    if beetl.secretkey == secretkey:
-
-        with Session(engine) as session:
-
-            [session.delete(bid) for bid in session.exec(
-                select(Bid)
-                .where(Bid.beetl_obfuscation == obfuscation)
-                .where(Bid.beetl_slug == slug)
-            ).all()]
-            session.delete(beetl)
-            session.commit()
-
-        return beetl
-
-    raise HTTPException(status_code=404, detail="Beetl not found")

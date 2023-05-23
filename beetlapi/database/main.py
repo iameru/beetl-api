@@ -34,7 +34,6 @@ def delete_entries(table: SQLModel, time_ago: timedelta):
             session.delete(entry)
 
 
-
 class Beetl(SQLModel, table=True):
 
     id: uuid_pkg.UUID = Field(
@@ -57,6 +56,9 @@ class Beetl(SQLModel, table=True):
     method: str
     beetlmode: str
 
+    # shall not be updated by user
+    _ignore_fields = ["obfuscation", "slug", "id", "secretkey", "created", "updated"]
+
 
 class Bid(SQLModel, table=True):
 
@@ -78,3 +80,6 @@ class Bid(SQLModel, table=True):
     beetl_slug: str
     created: datetime = Field(default_factory=datetime.utcnow)
     updated: datetime = Field(default_factory=datetime.utcnow)
+
+    # shall not be updated by user
+    _ignore_fields = ["secretkey", "beetl_obfuscation", "beetl_slug", "created", "updated"]
