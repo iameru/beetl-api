@@ -1,21 +1,22 @@
 from fastapi import FastAPI, HTTPException
-
 from beetlapi.database.main import (
     Beetl,
     BeetlRead,
     BeetlCreate,
     BeetlPatch,
     BeetlCreateRead,
+    BeetlDeleteResponse,
     BidsRead,
     BidCreate,
     BidCreateRead,
     BidRead,
     Bid,
     BidPatch,
+    BidDelete,
+    BidDeleteResponse
 )
 from beetlapi.database.main import create_db_and_tables, engine
-from sqlmodel import Session, select
-
+from sqlmodel import Session, select, delete
 from datetime import datetime
 
 app = FastAPI(
@@ -30,7 +31,6 @@ app = FastAPI(
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
-
 
 @app.post("/beetl", response_model=BeetlCreateRead)
 async def post_beetl(beetl: BeetlCreate):
@@ -144,3 +144,43 @@ async def patch_bid(data: BidPatch):
         session.refresh(bid)
 
     return bid
+
+@app.delete('/bid', response_model=BidDeleteResponse)
+async def delete_bid(beetl_obfuscation: str, beetl_slug: str, secretkey: str):
+
+    with Session(engine) as session:
+        bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == beetl_obfuscation)
+            .where(Bid.beetl_slug == beetl_slug)
+            .where(Bid.secretkey == secretkey)
+        ).first()
+
+        if bid:
+            session.delete(bid)
+            session.commit()
+
+            return bid
+        
+
+    raise HTTPException(status_code=404, detail="Bid not found")
+
+@app.delete('/beetl', response_model=BeetlDeleteResponse)
+async def delete_bid(obfuscation: str, slug: str, secretkey: str):
+
+    beetl = _get_beetl(obfuscation, slug)
+    if beetl.secretkey == secretkey:
+
+        with Session(engine) as session:
+
+            [session.delete(bid) for bid in session.exec(
+                select(Bid)
+                .where(Bid.beetl_obfuscation == obfuscation)
+                .where(Bid.beetl_slug == slug)
+            ).all()]
+            session.delete(beetl)
+            session.commit()
+
+        return beetl
+
+    raise HTTPException(status_code=404, detail="Beetl not found")

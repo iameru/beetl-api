@@ -3,9 +3,17 @@ from beetlapi import app
 from test import factory
 import unittest
 import random
+from beetlapi.database.main import engine, Bid, Beetl
+from sqlmodel import Session, select
 
 testclient = TestClient(app)
 
+# In here there is testdata for public beetl:
+# 'open'
+# 'open_bids'
+# private:
+# 'closed' 
+# 'closed_bids'
 testdata = {}
 
 def test_testclient_present():
@@ -95,7 +103,6 @@ def test_can_not_edit_beetl_with_fake_secretkey():
     response = testclient.get('/beetl',params=data)
     assert response.json().get('title') != updated.get('title')
     assert response.json().get('description') == beetl.get('description')
-
 
 def test_can_edit_beetl_with_correct_key():
 
@@ -317,3 +324,139 @@ def test_get_bids_for_closed_beetl():
 
     assert r_bids.get('bids_total') == 5
     assert len(r_bids.get('bids')) == 0
+
+def test_delete_bid_wrong_nonexistent_key():
+
+    bid = random.choice(testdata.get('open_bids'))
+
+    params = {
+        'beetl_obfuscation': bid.get('beetl_obfuscation'),
+        'beetl_slug': bid.get('beetl_slug'),
+              }
+
+    response = testclient.delete('/bid', params=params)
+    assert response.status_code == 422
+
+    params['secretkey'] = 'dis shall fail aswell'
+
+    response = testclient.delete('/bid', params=params)
+    assert response.status_code == 404
+
+def test_delete_bid():
+
+    bid = testdata.get('open_bids')[2]
+
+    with Session(engine) as session:
+        db_bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == bid.get('beetl_obfuscation'))
+            .where(Bid.beetl_slug ==        bid.get('beetl_slug'))
+            .where(Bid.secretkey ==         bid.get('secretkey'))
+        ).first()
+
+    assert db_bid
+
+    params = {
+        'beetl_obfuscation': bid.get('beetl_obfuscation'),
+        'beetl_slug': bid.get('beetl_slug'),
+        'secretkey': bid.get('secretkey'),
+              }
+
+    response = testclient.delete('/bid', params=params)
+    assert response.status_code == 200
+
+
+
+    with Session(engine) as session:
+        db_bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == bid.get('beetl_obfuscation'))
+            .where(Bid.beetl_slug ==        bid.get('beetl_slug'))
+            .where(Bid.secretkey ==         bid.get('secretkey'))
+        ).first()
+
+    assert not db_bid
+
+    del testdata.get('open_bids')[2]
+
+
+def test_delete_beetl_wrong_nonexistent_key():
+
+    beetl = testdata.get('open')
+
+    params = {
+        'obfuscation': beetl.get('obfuscation'),
+        'slug': beetl.get('slug'),
+              }
+
+    response = testclient.delete('/beetl', params=params)
+    assert response.status_code == 422
+
+    params['secretkey'] = 'dis shall fail aswell'
+
+    response = testclient.delete('/beetl', params=params)
+    assert response.status_code == 404
+
+def test_delete_beetl():
+
+    beetl = testdata.get('open')
+
+    with Session(engine) as session:
+        db_beetl = session.exec(
+            select(Beetl)
+            .where(Beetl.obfuscation == beetl.get('obfuscation'))
+            .where(Beetl.slug == beetl.get('slug'))
+        ).first()
+
+    assert db_beetl
+
+    params = {
+        'obfuscation': beetl.get('obfuscation'),
+        'slug': beetl.get('slug'),
+        'secretkey': beetl.get('secretkey'),
+              }
+
+    response = testclient.delete('/beetl', params=params)
+    assert response.status_code == 200
+
+    with Session(engine) as session:
+        db_beetl = session.exec(
+            select(Beetl)
+            .where(Beetl.obfuscation == beetl.get('obfuscation'))
+            .where(Beetl.slug == beetl.get('slug'))
+        ).first()
+
+    assert not db_beetl
+
+def test_delete_beetl_deletes_all_its_bids_aswell():
+
+    bid = testdata.get('closed_bids')[1]
+
+    with Session(engine) as session:
+        db_bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == bid.get('beetl_obfuscation'))
+            .where(Bid.beetl_slug ==        bid.get('beetl_slug'))
+        ).first()
+
+    assert db_bid
+
+
+    beetl = testdata.get('closed')
+    params = {
+        'obfuscation': beetl.get('obfuscation'),
+        'slug': beetl.get('slug'),
+        'secretkey': beetl.get('secretkey'),
+              }
+    response = testclient.delete('/beetl', params=params)
+    assert response.status_code == 200
+
+    with Session(engine) as session:
+        db_bid = session.exec(
+            select(Bid)
+            .where(Bid.beetl_obfuscation == bid.get('beetl_obfuscation'))
+            .where(Bid.beetl_slug ==        bid.get('beetl_slug'))
+        ).all()
+
+    assert not db_bid
+

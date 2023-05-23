@@ -26,6 +26,10 @@ class BeetlRead(BeetlCreate):
     created: datetime
     updated: datetime
 
+class BeetlDeleteResponse(BeetlRead):
+
+    pass
+
 
 class BidCreate(SQLModel):
     name: str
@@ -57,3 +61,10 @@ class BidPatch(BidCreate):
 
     secretkey: str
 
+class BidDelete(BidPatch):
+
+    pass
+
+class BidDeleteResponse(BidRead):
+    
+    pass
