@@ -32,6 +32,7 @@ class BeetlDeleteResponse(BeetlRead):
 
 
 class BidCreate(SQLModel):
+
     name: str
     min: int
     mid: Optional[int]
@@ -40,8 +41,10 @@ class BidCreate(SQLModel):
     beetl_slug: str
 
 
+import uuid
 class BidCreateRead(BidCreate):
 
+    id: uuid.UUID
     secretkey: str
     created: datetime
     updated: datetime
@@ -49,6 +52,7 @@ class BidCreateRead(BidCreate):
 
 class BidRead(BidCreate):
 
+    id: uuid.UUID
     created: datetime
     updated: datetime
 

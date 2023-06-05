@@ -379,7 +379,6 @@ def test_delete_bid():
 
     del testdata.get('open_bids')[2]
 
-
 def test_delete_beetl_wrong_nonexistent_key():
 
     beetl = testdata.get('open')
