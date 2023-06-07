@@ -18,6 +18,12 @@ from fastapi import FastAPI, HTTPException
 from beetlapi.database.main import create_db_and_tables, engine
 from sqlmodel import Session, select, delete
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
+from os import environ
+
+origins =['https://beetl.xyz']
+if environ.get('DEVDEVDEV'):
+    origins.append( "http://localhost:3000")
 
 app = FastAPI(
     title="beetl-api",
@@ -26,6 +32,13 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    )
 
 def _get_beetl(obfuscation:str, slug:str):
     with Session(engine) as session:
