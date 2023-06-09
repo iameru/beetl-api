@@ -130,6 +130,7 @@ def test_can_edit_beetl_with_correct_key():
     assert r.get('title') == 'updated title'
     assert r.get('description') == 'updated description'
 
+
 def test_get_beetl_doesnt_return_secrets():
 
     beetl = factory.beetl()
@@ -284,6 +285,28 @@ def test_edit_existing_bid_with_correct_key():
     assert r_bid.get('max') == max + 5
     assert r_bid.get('created') == created
     assert r_bid.get('updated') != updated
+
+def test_check_secretkey_for_bid():
+
+    beetl = testdata.get('open')
+    bid_selector = 2
+    bid = testdata.get('open_bids')[bid_selector]
+
+    data = {
+        'id' : bid.get('id'),
+        'secretkey' : bid.get('secretkey')
+    }
+
+    response = testclient.post('/checksecretkey', json=data)
+    assert response.status_code == 200
+    assert response.json().get('status') == 'success'
+
+    data = data.copy()
+    data.update({'secretkey' : 'not Correct!'})
+
+    response = testclient.post('/checksecretkey', json=data)
+    assert response.status_code == 200
+    assert response.json().get('status') == 'failed'
 
 def test_create_bids_for_closed_beetl():
 

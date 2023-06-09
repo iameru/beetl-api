@@ -72,3 +72,11 @@ class BidDelete(BidPatch):
 class BidDeleteResponse(BidRead):
     
     pass
+
+class BidCheckSecretKey(SQLModel):
+    secretkey: str
+    id: uuid.UUID
+
+class BidCheckSecretKeyResponse(SQLModel):
+    status: Literal['success', 'failed']
+

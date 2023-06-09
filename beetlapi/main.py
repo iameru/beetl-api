@@ -12,7 +12,9 @@ from beetlapi.database.main import (
     Bid,
     BidPatch,
     BidDelete,
-    BidDeleteResponse
+    BidDeleteResponse,
+    BidCheckSecretKey,
+    BidCheckSecretKeyResponse
 )
 from fastapi import FastAPI, HTTPException
 from beetlapi.database.main import create_db_and_tables, engine
@@ -191,3 +193,15 @@ async def delete_bid(beetl_obfuscation: str, beetl_slug: str, secretkey: str):
 
     raise HTTPException(status_code=404, detail="Bid not found")
 
+@app.post("/checksecretkey", response_model=BidCheckSecretKeyResponse)
+async def check_secretkey(data: BidCheckSecretKey):
+    with Session(engine) as session:
+        bid = session.exec(
+            select(Bid)
+            .where(Bid.id == data.id)
+            .where(Bid.secretkey == data.secretkey)
+        ).first()
+
+    if bid:
+        return {'status':'success'}
+    return {'status':'failed'}
